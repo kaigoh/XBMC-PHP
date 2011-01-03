@@ -101,15 +101,15 @@ class xbmcJsonRPC {
 		}
 	}
 	
-	public function rpc($method, $params = NULL) {
+	public function rpc($method, $params = null) {
 		
 		$uid = rand(1, 9999999);
 
 		$json = array(
-		'jsonrpc' => '2.0',
-		'method'  => $method,
-		'params'  => $params,
-		'id'      => $uid
+			'jsonrpc' => '2.0',
+			'method' => $method,
+			'params' => $params,
+			'id' => $uid
 		);
 
 		$request = json_encode($json);
@@ -127,12 +127,13 @@ class xbmcJsonRPC {
 			throw new Exception('JSON-RPC ID Mismatch');
 		}
 
-		if (property_exists($response, 'error'))
-		throw new Exception($response->error->message, $response->error->code);
-		else if (property_exists($response, 'result'))
-		return $response->result;
-		else
-		throw new Exception('Bad JSON-RPC response');
+		if (property_exists($response, 'error')) {
+			throw new Exception($response->error->message, $response->error->code);
+		} else if(property_exists($response, 'result')) {
+			return $response->result;
+		} else {
+			throw new Exception('Bad JSON-RPC response');
+		}
 	}
 	
 }
@@ -237,8 +238,8 @@ class xbmcJsonCommand {
 		$this->_xbmcJson = $xbmcJson;
 	}
 
-	public function __call($method, $args = array()) {
-		return $this->_xbmcJson->rpc($this->_name.".".$method, $args);
+	public function __call($method, $args = null) {
+		return $this->_xbmcJson->rpc($this->_name.".".$method, $args[0]);
 	}
 	
 }
