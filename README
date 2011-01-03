@@ -57,14 +57,15 @@ Next, create the two classes in one of the below formats:
 		
 1. Pass the URL parameters as an array
 		
-$xbmcConfig = array('host' => '0.0.0.0', 'port' => '8080', 'user' => 'username', 'pass' => 'password');
-$xbmcJson = new xbmcJson($xbmcConfig);
-$xbmcHttp = new xbmcHttp($xbmcConfig);
+	$xbmcHost = new xbmcHost(array('host' => '0.0.0.0', 'port' => '8080', 'user' => 'username', 'pass' => 'password'));
+	$xbmcJson = new xbmcJson($xbmcHost);
+	$xbmcHttp = new xbmcHttp($xbmcHost);
 		
 2. Pass the URL as a string:
-		
-$xbmcJson = new xbmcJson('username:password@IP:Port');
-$xbmcHttp = new xbmcHttp('username:password@IP:Port');
+	
+	$xbmcHost = new xbmcHost('username:password@IP:Port');
+	$xbmcJson = new xbmcJson($xbmcHost);
+	$xbmcHttp = new xbmcHttp($xbmcHost);
 	
 Then you can start making calls:
 		
