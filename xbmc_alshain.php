@@ -2,11 +2,6 @@
 
 /**
 
-	Code does not run...yet. I havn't had a chance
-	to go through and double check where the errors
-	are and correct them, hope to do that tommorrow.
-
-
         +-----------------------------------------------+
         |       XBMC PHP Library - (C) Kai Gohegan, 2010   |
         +-----------------------------------------------+
