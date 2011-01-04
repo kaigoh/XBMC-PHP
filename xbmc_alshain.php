@@ -96,7 +96,7 @@ class XbmcException extends Exception{
 class XbmcHost{
     private $_url = null;
 
-    public function __construct() {
+    public function __construct(){
         // we con't know how many arguments we will get.
         $config = call_user_func_array(
             array($this, 'parseConfig'),
@@ -138,8 +138,8 @@ class XbmcHost{
     protected function validateAndCleanConfig($config){
         $valid_keys = array("user", "pass", "host", "port");
         $required_keys = array("host");
-        foreach($required_keys as $key) {
-            if(!array_key_exists($key, $config)) {
+        foreach($required_keys as $key){
+            if(!array_key_exists($key, $config)){
                 throw new XbmcException("Missing config key: ".$key);
             }
         }
@@ -159,10 +159,10 @@ class XbmcHost{
      *     via array or string.
      */
     protected function parseConfig($config){
-        if(is_string($config)) {
+        if(is_string($config)){
             $config = parse_url($config);
 
-            if($config === false) {
+            if($config === false){
                 throw new XbmcException('Bad URL parameters!');
             }
         }
@@ -173,7 +173,7 @@ class XbmcHost{
      * Check whether the XBMC with specified config can be
      * reached.
      */
-    public function isXbmcReachable() {
+    public function isXbmcReachable(){
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_URL, $this->url);
@@ -201,15 +201,15 @@ class XbmcHost{
 
 class XbmcJson{
     protected $_xbmc;
-    public function __construct($xbmc) {
+    public function __construct($xbmc){
         $this->_xbmc = $xbmc;
         $this->populateCommands($this->rpc("JSONRPC.Introspect")->commands);
     }
 
-    private function populateCommands($remoteCommands) {
-        foreach($remoteCommands as $remoteCommand) {
+    private function populateCommands($remoteCommands){
+        foreach($remoteCommands as $remoteCommand){
             $rpcCommand = explode(".", $remoteCommand->command);
-            if(!class_exists($rpcCommand[0])) {
+            if(!class_exists($rpcCommand[0])){
                 $this->$rpcCommand[0] = new XbmcJsonCommand(
                     $rpcCommand[0],
                     $this);
@@ -217,7 +217,7 @@ class XbmcJson{
         }
     }
 
-    public function rpc($method, $params = NULL) {
+    public function rpc($method, $params = NULL){
         $uid = rand(1, 9999999);
 
         $json = array(
@@ -238,7 +238,7 @@ class XbmcJson{
 
         $response = json_decode($responseRaw);
 
-        if ($response->id != $uid) {
+        if ($response->id != $uid){
             throw new XbmcException('JSON-RPC ID Mismatch');
         }
 
@@ -257,31 +257,29 @@ class XbmcJson{
     }
 }
 
-class XbmcJsonCommand {
+class XbmcJsonCommand{
     private $_name;
     private $_xbmcJson;
 
-    public function __construct($name, xbmcJson $xbmcJson) {
+    public function __construct($name, xbmcJson $xbmcJson){
         $this->_name = $name;
         $this->_xbmcJson = $xbmcJson;
     }
 
-    public function __call($method, $args = array()) {
+    public function __call($method, $args = array()){
         return $this->_xbmcJson->rpc($this->_name.".".$method, $args);
     }
 
 }
-/** </JSON-RPC> **/
 
-/** <HTTP-API> **/
-class XbmcHttp {
+class XbmcHttp{
     protected $_xbmc;
 
-    public function __construct(XbmcHost $xbmc) {
+    public function __construct(XbmcHost $xbmc){
         $this->_xbmc = $xbmc;
     }
 
-    public function __call($command, $args = array()) {
+    public function __call($command, $args = array()){
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_URL, $this->buildUrl($command, $args));
@@ -291,7 +289,7 @@ class XbmcHttp {
 
     public function buildUrl($command, $args = array(), $params = array()){
         $args = (array) $args;
-        $command .= $this->arrayToParamString($args); 
+        $command .= $this->arrayToParamString($args);
         $params['command'] = $command;
         $result = "http://";
         $result .= $this->_xbmc->url;
