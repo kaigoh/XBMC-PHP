@@ -75,22 +75,24 @@ class XbmcException extends Exception{
 }
 /** <JSON-RPC> **/
 
-class Xbmc{
+class XbmcHost{
     private $_url = null;
 
     public function __construct() {
-        $config = $this->parseConfig(func_get_args());
-        $this->_config = $this->validateAndCleanConfig($config);
-        $this->url = $this->buildUrl();
+        // we con't know how many arguments we will get.
+        $config = call_user_func_array(array($this, 'parseConfig'), func_get_args());
+        $config = $this->validateAndCleanConfig($config);
+        var_dump("before build url", $config);
+        $this->_url = $this->buildUrl($config);
         $this->assertReachableXbmc();
     }
 
     /**
      * Throw XbmcException if XBMC cannot be reached.
      */
-    protected function assertReachableXbmc($config = null){
-        if(!$this->isXbmcReachable($config)){
-            throw XbmcException("Host could not be reached.");
+    protected function assertReachableXbmc(){
+        if(!$this->isXbmcReachable()){
+            throw new XbmcException("Host could not be reached.");
         }
     }
 
@@ -103,6 +105,7 @@ class Xbmc{
          */
 
         // First validate config
+        var_dump("config", $config);
         $port = 8080;
         extract($config);
         $url = '';
@@ -156,45 +159,33 @@ class Xbmc{
      * Check whether the XBMC with specified config can be
      * reached.
      */
-    public function isXbmcReachable($config = null) {
-        $config = (!is_null($config)) ? $config : $this->_config;
+    public function isXbmcReachable() {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_URL, $tihs->buildUrl($config));
+        curl_setopt($ch, CURLOPT_URL, $this->url);
         curl_exec($ch);
         $info = curl_getinfo($ch);
         return ($info['http_code'] == "200" || $info['http_code'] == "401");
     }
 
     public function __get($name){
-        $valid_getters = array("url");
-        if(in_array($name, $valid_getters)){
-            $getter_name = "get".ucwords($url);
-            return $this->$getter_name; 
+        if($name == 'url'){
+            return $this->_url;
         }
     }
 
     public function __set($name, $value){
-        $valid_setters = array("url");
-        if(in_array($name, $valid_setters)){
-            $getter_name = "get".ucwords($url);
-            return $this->$getter_name; 
+        if($name == "url"){
+            throw new XbmcException("Property is read-only!");
         }
-    }
-
-    public function setUrl($url) {
-        $this->_url = $url;
-    }
-
-    public function getUrl() {
-        return $this->_url;
+        throw new XbmcException("Undefined property");
     }
 }
 
 class XbmcJson{
     protected $_xbmc;
-    public function __construct() {
-        $this->_xbmc = new Xbmc(func_get_args());
+    public function __construct($xbmc) {
+        $this->_xbmc = $xbmc;
         $this->populateCommands($this->rpc("JSONRPC.Introspect")->commands);
     }
     
@@ -262,8 +253,8 @@ class XbmcJsonCommand {
 class XbmcHttp {
     protected $_xbmc;
 
-    public function __construct() {
-        $this->_xbmc = new Xbmc(func_get_args());
+    public function __construct(XbmcHost $xbmc) {
+        $this->_xbmc = $xbmc;
     }
 
     public function __call($method, $args = "") {
