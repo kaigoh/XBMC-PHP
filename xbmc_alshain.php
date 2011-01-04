@@ -265,12 +265,14 @@ class XbmcHttp {
         return strip_tags($response);
     }
 
-    public function buildUrl($command, $args = array()){
-        $args['command'] = $command;
+    public function buildUrl($command, $args = array(), $params = array()){
+        $args = (is_array($args)) ? implode(',', $args) : $args;
+        $command .= '('.$args.')';
+        $params['command'] = $command;
         $result = "http://";
         $result .= $this->_xbmc->url;
         $result .= '/xbmcCmds/xbmcHttp?';
-        $result .= http_build_query($args);
+        $result .= http_build_query($params);
         var_dump($result);
         return $result;
     }
