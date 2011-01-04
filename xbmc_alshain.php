@@ -257,12 +257,22 @@ class XbmcHttp {
         $this->_xbmc = $xbmc;
     }
 
-    public function __call($method, $args = "") {
+    public function __call($command, $args = array()) {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_URL, "http://".$this->_xbmc->url."/xbmcCmds/xbmcHttp?command=".$method."(".urlencode($args[0]).")");
+        curl_setopt($ch, CURLOPT_URL, $this->buildUrl($command, $args));
         $response = curl_exec($ch);
         return strip_tags($response);
+    }
+
+    public function buildUrl($command, $args = array()){
+        $args['command'] = $command;
+        $result = "http://";
+        $result .= $this->_xbmc->url;
+        $result .= '/xbmcCmds/xbmcHttp?';
+        $result .= http_build_query($args);
+        var_dump($result);
+        return $result;
     }
 }
 /** </HTTP-API> **/
