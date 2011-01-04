@@ -161,6 +161,9 @@ class XbmcHost{
         return ($info['http_code'] == "200" || $info['http_code'] == "401");
     }
 
+    /**
+     * Implements url property.
+     */
     public function __get($name){
         if($name == 'url'){
             return $this->_url;
@@ -264,8 +267,8 @@ class XbmcHttp {
     }
 
     public function buildUrl($command, $args = array(), $params = array()){
-        $args = (is_array($args)) ? implode(',', $args) : $args;
-        $command .= '('.$args.')';
+        $args = (array) $args;
+        $command .= $this->arrayToParamString($args); 
         $params['command'] = $command;
         $result = "http://";
         $result .= $this->_xbmc->url;
@@ -273,6 +276,16 @@ class XbmcHttp {
         $result .= http_build_query($params);
         return $result;
     }
+
+    protected function arrayToParamString($array){
+        $result = array();
+        foreach($array as $arg){
+            if(is_array($arg)){
+                $arg = $this->arrayToParamString($arg);
+            }
+            $result[] = $arg;
+        }
+        return "(".implode(",", $result).")";
+    }
 }
-/** </HTTP-API> **/
 ?>
