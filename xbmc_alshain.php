@@ -5,75 +5,93 @@
         +-----------------------------------------------+
         |       XBMC PHP Library - (C) Kai Gohegan, 2010   |
         +-----------------------------------------------+
-        
+
         A PHP library for interacting with XBMC using
         JSON-RPC and XBMC's HTTP-API. Inspiration was
         drawn from Jason Bryant-Greene's php-json-rpc
         (https://bitbucket.org/jbg/php-json-rpc/src).
-        
+
         +-----------------------------------------------+
         |                    License                    |
         +-----------------------------------------------+
-                
+
         Copyright (c) 2010, Kai Gohegan
         All rights reserved.
 
-        Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following
-        conditions are met:
+        Redistribution and use in source and binary forms, with or without
+        modification, are permitted provided that the following conditions
+        are met:
 
-        Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-        
-        Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-        in the documentation and/or other materials provided with the distribution.
-        
-        Neither the name of Kai Gohegan nor the names of its contributors may be used to endorse or promote products derived
-        from this software without specific prior written permission.
-        
-        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
-        BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
-        SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-        DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-        INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-        OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+        Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+        Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+
+        Neither the name of Kai Gohegan nor the names of its contributors may
+        be used to endorse or promote products derived from this software
+        without specific prior written permission.
+
+        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+        "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+        LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+        A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+        HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+        INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+        BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+        OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+        AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+        LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
+        WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+        POSSIBILITY OF SUCH DAMAGE.
 
         +-----------------------------------------------+
         |                     Usage                     |
         +-----------------------------------------------+
-        
-        First, include the xbmc.php file:
-        include("xbmc.php");
-        
-        Next, create the two classes in one of the below formats:
-        
-        1. Pass the URL parameters as an array
-        
-        $xbmcConfig = array('host' => '0.0.0.0', 'port' => '8080', 'user' => 'username', 'pass' => 'password');
-        $xbmcJson = new xbmcJson($xbmcConfig);
-        $xbmcHttp = new xbmcHttp($xbmcConfig);
-        
-        2. Pass the URL as a string:
-        
-        $xbmcJson = new xbmcJson('username:password@IP:Port');
-        $xbmcHttp = new xbmcHttp('username:password@IP:Port');
-        
-        Then you can start making calls:
-        
-        JSON-RPC API (http://wiki.xbmc.org/index.php?title=JSON_RPC)
-        Commands are sent using the following syntax:
-        $xbmcJSON->NAMESPACE->COMMAND(array(PARAM1 => VALUE1, PARAM2 => VALUE2, etc..));
-        eg: $xbmcJSON->VideoLibrary->GetRecentlyAddedMovies();
-                        
-        HTTP-API API (http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API)
-        Commands are sent using the following syntax:
-        $xbmcHTTP->COMMAND("Parameter string in quotes. The string is automatically url-encoded.");
-        eg: $xbmcHTTP->ExecBuiltIn("Notification(XBMC-PHP, Hello!)");
+
+
+        Clases:
+            XbmcHost
+            XbmcJson
+            XbmcHttp
+
+        The XbmcHost-Class represents a computer running an instance of XBMC
+        An instance thereof must be passed to the constructor.  API-Classes
+        XbmcJson and XbmcHttp.  The XbmcHost-Class accepts two parameter
+        formats:
+
+            * A string:
+                'username:password@host:port'
+            * an array with the keys:
+                user, pass, host, port
+
+        Usage:
+
+        $xbmcJson->NAMESPACE->COMMAND(
+            array(PARAM1 => VALUE1, PARAM2 => VALUE2, etc..)
+        );
+        $xbmcJson->VideoLibrary->GetRecentlyAddedMovies();
+
+        $xbmcHttp->COMMAND('arg1,arg2');
+        $xbmcHttp->ExecBuiltIn("Notification(XBMC-PHP, Hello!)");
+
+        The arguments may also be passed as array. The values will be joined
+        recursively and wrapped with parenthenses.  All parameters will be
+        urlencoded properly, regardless of the of the way the arguments are
+        being passed.
+
+        $xbmcHttp->ExecBuiltIn("Notification", array("XBMC-PHP", "Hello!"));
+
+        References:
+        http://wiki.xbmc.org/index.php?title=JSON_RPC
+        http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API
 
 **/
 
 class XbmcException extends Exception{
 
 }
-/** <JSON-RPC> **/
 
 class XbmcHost{
     private $_url = null;
@@ -131,23 +149,26 @@ class XbmcHost{
     }
 
     /**
-    * Process the constructor argument and try returning
-    * a well formed configuration array containing the
-    * following indexes: user, password, host, port
-    * Added 01/01/2011 - Suggestion from robweber (http://forum.xbmc.org/showpost.php?p=678465&postcount=11)
-    * Check how the URL, port, username and password is being passed in, via array or string.
-    */
+     * Process the constructor argument and try returning
+     * a well formed configuration array containing the
+     * following indexes: user, password, host, port
+     *
+     * Added 01/01/2011 - Suggestion from robweber
+     *     http://forum.xbmc.org/showpost.php?p=678465&postcount=11
+     *     Check how the URL, port, username and password is being passed in,
+     *     via array or string.
+     */
     protected function parseConfig($config){
         if(is_string($config)) {
             $config = parse_url($config);
 
             if($config === false) {
-                throw new XbmcException('Bad URL parameters!');         
+                throw new XbmcException('Bad URL parameters!');
             }
-        } 
+        }
         return $config;
     }
-    
+
     /**
      * Check whether the XBMC with specified config can be
      * reached.
@@ -184,7 +205,7 @@ class XbmcJson{
         $this->_xbmc = $xbmc;
         $this->populateCommands($this->rpc("JSONRPC.Introspect")->commands);
     }
-    
+
     private function populateCommands($remoteCommands) {
         foreach($remoteCommands as $remoteCommand) {
             $rpcCommand = explode(".", $remoteCommand->command);
@@ -207,14 +228,14 @@ class XbmcJson{
         );
 
         $request = json_encode($json);
-        
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_URL, "http://".$this->_xbmc->url."/jsonrpc");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
         $responseRaw = curl_exec($ch);
-        
+
         $response = json_decode($responseRaw);
 
         if ($response->id != $uid) {
@@ -222,8 +243,10 @@ class XbmcJson{
         }
 
         if (property_exists($response, 'error')){
-            throw new XbmcException($response->error->message,
-                $response->error->code);
+            throw new XbmcException(
+                $response->error->message,
+                $response->error->code
+            );
         }
         else if (property_exists($response, 'result')){
             return $response->result;
@@ -237,7 +260,7 @@ class XbmcJson{
 class XbmcJsonCommand {
     private $_name;
     private $_xbmcJson;
-    
+
     public function __construct($name, xbmcJson $xbmcJson) {
         $this->_name = $name;
         $this->_xbmcJson = $xbmcJson;
@@ -246,7 +269,7 @@ class XbmcJsonCommand {
     public function __call($method, $args = array()) {
         return $this->_xbmcJson->rpc($this->_name.".".$method, $args);
     }
-    
+
 }
 /** </JSON-RPC> **/
 
