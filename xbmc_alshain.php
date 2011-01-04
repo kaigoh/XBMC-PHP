@@ -3,7 +3,7 @@
 /**
 
         +-----------------------------------------------+
-        |       XBMC PHP Library - (C) Kai Gohegan, 2010   |
+        |   XBMC PHP Library - (C) Kai Gohegan, 2010    |
         +-----------------------------------------------+
 
         A PHP library for interacting with XBMC using
