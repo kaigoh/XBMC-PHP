@@ -80,9 +80,11 @@ class XbmcHost{
 
     public function __construct() {
         // we con't know how many arguments we will get.
-        $config = call_user_func_array(array($this, 'parseConfig'), func_get_args());
+        $config = call_user_func_array(
+            array($this, 'parseConfig'),
+            func_get_args()
+        );
         $config = $this->validateAndCleanConfig($config);
-        var_dump("before build url", $config);
         $this->_url = $this->buildUrl($config);
         $this->assertReachableXbmc();
     }
@@ -100,12 +102,6 @@ class XbmcHost{
      * Build an URL(string) from a config array
      */
     protected function buildUrl($config){
-        /**
-         * Build a URL from a config array.
-         */
-
-        // First validate config
-        var_dump("config", $config);
         $port = 8080;
         extract($config);
         $url = '';
@@ -124,7 +120,6 @@ class XbmcHost{
     protected function validateAndCleanConfig($config){
         $valid_keys = array("user", "pass", "host", "port");
         $required_keys = array("host");
-		print_r($config);
         foreach($required_keys as $key) {
             if(!array_key_exists($key, $config)) {
                 throw new XbmcException("Missing config key: ".$key);
@@ -150,8 +145,6 @@ class XbmcHost{
                 throw new XbmcException('Bad URL parameters!');         
             }
         } 
-        // removing the if, I'd drop that process entirely.
-        $config = array_change_key_case($config, CASE_LOWER);
         return $config;
     }
     
@@ -278,7 +271,6 @@ class XbmcHttp {
         $result .= $this->_xbmc->url;
         $result .= '/xbmcCmds/xbmcHttp?';
         $result .= http_build_query($params);
-        var_dump($result);
         return $result;
     }
 }
