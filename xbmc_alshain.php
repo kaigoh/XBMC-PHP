@@ -193,20 +193,21 @@ class XbmcJson{
         foreach($remoteCommands as $remoteCommand) {
             $rpcCommand = explode(".", $remoteCommand->command);
             if(!class_exists($rpcCommand[0])) {
-                $this->$rpcCommand[0] = new XbmcJsonCommand($rpcCommand[0], $this);
+                $this->$rpcCommand[0] = new XbmcJsonCommand(
+                    $rpcCommand[0],
+                    $this);
             }
         }
     }
 
     public function rpc($method, $params = NULL) {
-        
         $uid = rand(1, 9999999);
 
         $json = array(
-        'jsonrpc' => '2.0',
-        'method'  => $method,
-        'params'  => $params,
-        'id'      => $uid
+            'jsonrpc' => '2.0',
+            'method'  => $method,
+            'params'  => $params,
+            'id'      => $uid
         );
 
         $request = json_encode($json);
@@ -224,12 +225,16 @@ class XbmcJson{
             throw new XbmcException('JSON-RPC ID Mismatch');
         }
 
-        if (property_exists($response, 'error'))
-        throw new XbmcException($response->error->message, $response->error->code);
-        else if (property_exists($response, 'result'))
-        return $response->result;
-        else
-        throw new XbmcException('Bad JSON-RPC response');
+        if (property_exists($response, 'error')){
+            throw new XbmcException($response->error->message,
+                $response->error->code);
+        }
+        else if (property_exists($response, 'result')){
+            return $response->result;
+        }
+        else{
+            throw new XbmcException('Bad JSON-RPC response');
+        }
     }
 }
 
