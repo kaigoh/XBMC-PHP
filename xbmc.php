@@ -295,7 +295,8 @@ class xbmcJsonRPC {
 
 class xbmcJson extends xbmcJsonRPC {
 	
-	public function __construct(xbmcHost $xbmcHost) {
+	public function __construct(xbmcHost $xbmcHost, $debug = false) {
+        $this->setDebug($debug);
 		parent::setUrl($xbmcHost->url());
 		$this->populateCommands($this->rpc("JSONRPC.Introspect")->methods);
 	}
