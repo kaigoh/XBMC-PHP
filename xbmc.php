@@ -167,7 +167,7 @@ class xbmcHost {
 			throw new xbmcError('Bad URL parameters');				
 		}	
 	}
-	
+
 	private function isHostAlive($host, $port = "8080") {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -207,6 +207,18 @@ class xbmcJsonRPC {
 
 	private $_url;
 
+    protected $_debug = false;
+
+    public function setDebug($debug)
+    {
+        $this->_debug = $debug;
+    }
+
+    public function getDebug()
+    {
+        return $this->_debug;
+    }
+
 	public function __construct() {
 		
 	}
@@ -218,30 +230,50 @@ class xbmcJsonRPC {
 	public function getUrl() {
 		return $this->_url;
 	}
-	
+
+    protected function debug($message) {
+        if (!$this->getDebug()) {
+            return;
+        }
+        error_log($message, 0);
+    }
+
 	public function rpc($method, $params = null) {
-		
 		$uid = rand(1, 9999999);
 
 		$json = array(
 			'jsonrpc' => '2.0',
 			'method' => $method,
-			'params' => $params,
-			'id' => $uid
-		);
+            'id' => $uid
+        );
 
+        if (!empty($params)) {
+            $json['params'] = $params;
+        }
 		$request = json_encode($json);
-		
-		$ch = curl_init();
+
+        $url = "http://".$this->_url."/jsonrpc?" . $method;
+        $this->debug(sprintf('Request to URL "%s": %s', $url, var_export($request, true)));
+
+        $ch = curl_init();
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_URL, "http://".$this->_url."/jsonrpc");
+		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
-		$responseRaw = curl_exec($ch);
-		
-		$response = json_decode($responseRaw);
+        curl_setopt($ch, CURLOPT_FAILONERROR, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json"));
 
-		if ($response->id != $uid) {
+        $responseRaw = curl_exec($ch);
+
+        if ($responseRaw === false) {
+            throw new xbmcError('cURL Error: ' . curl_error($ch));
+        }
+
+        $response = json_decode($responseRaw);
+
+        $this->debug('Response: ' . var_export($response,true));
+
+        if ($response->id != $uid) {
 			throw new xbmcError('JSON-RPC ID Mismatch');
 		}
 
@@ -263,14 +295,15 @@ class xbmcJsonRPC {
 
 class xbmcJson extends xbmcJsonRPC {
 	
-	public function __construct(xbmcHost $xbmcHost) {
+	public function __construct(xbmcHost $xbmcHost, $debug = false) {
+        $this->setDebug($debug);
 		parent::setUrl($xbmcHost->url());
-		$this->populateCommands($this->rpc("JSONRPC.Introspect")->commands);
+		$this->populateCommands($this->rpc("JSONRPC.Introspect")->methods);
 	}
 	
 	private function populateCommands($remoteCommands) {
-		foreach($remoteCommands as $remoteCommand) {
-			$rpcCommand = explode(".", $remoteCommand->command);
+		foreach($remoteCommands as $command=>$remoteCommand) {
+			$rpcCommand = explode(".", $command);
 			if(!class_exists($rpcCommand[0])) {
 				$this->$rpcCommand[0] = new xbmcJsonCommand($rpcCommand[0], parent::getUrl(), $this);
 			}
