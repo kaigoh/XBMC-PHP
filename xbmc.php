@@ -325,7 +325,10 @@ class xbmcJsonCommand {
 	}
 
 	public function __call($method, $args = null) {
-		return $this->_xbmcJson->rpc($this->_name.".".$method, $args[0]);
+        if ($args != null) {
+            $args = $args[0];
+        }
+		return $this->_xbmcJson->rpc($this->_name.".".$method, $args);
 	}
 	
 }
